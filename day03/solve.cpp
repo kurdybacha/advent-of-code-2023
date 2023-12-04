@@ -2,31 +2,45 @@
 #include <array>
 #include <cctype>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <list>
+#include <numeric>
 #include <vector>
 
 using namespace std;
 
 bool issymbol(char c) { return c != '.' && !isdigit(c); }
 
-int harvest_sum(list<pair<int, string>> &nums, vector<int> &syms) {
-    int sum = 0;
+struct Sym {
+    Sym(char s, int idx) : s{s}, idx{idx} {}
+    char s;
+    int idx;
+    vector<int> adj_nums;
+};
+
+struct Num {
+    Num(int idx, string str) : idx{idx}, str{str} {}
+    int idx;
+    string str;
+    int val() const { return stoi(str); }
+};
+
+void find_adj_nums(list<Num> &nums, vector<Sym> &syms) {
     auto it = begin(nums);
     while (it != end(nums)) {
-        auto &[idx, num_str] = *it;
-        auto sit = find_if(begin(syms), end(syms), [&](int s) {
-            return s >= (idx > 0 ? idx - 1 : idx) &&
-                   s <= idx + num_str.length();
+        auto &num = *it;
+        auto sit = find_if(begin(syms), end(syms), [&](Sym sym) {
+            return sym.idx >= (num.idx > 0 ? num.idx - 1 : num.idx) &&
+                   sym.idx <= num.idx + num.str.length();
         });
         if (sit != end(syms)) {
-            sum += stoi(num_str.data());
+            sit->adj_nums.push_back(num.val());
             nums.erase(it++);
         } else {
             ++it;
         }
     }
-    return sum;
 }
 
 int main(int argc, char **argv) {
@@ -34,11 +48,12 @@ int main(int argc, char **argv) {
     string line;
 
     // coordinates of symbols in the last two rows.
-    array<vector<int>, 2> syms;
+    array<vector<Sym>, 2> syms;
     // numbers in the last two rows.
-    array<list<pair<int, string>>, 2> nums;
+    array<list<Num>, 2> nums;
 
     int sum = 0;
+    int pow = 0;
     int idx = 0;
     while (getline(file, line)) {
         string_view l{line};
@@ -53,7 +68,7 @@ int main(int argc, char **argv) {
                 num_idx = i;
             }
             if (issymbol(line.at(i))) {
-                syms[idx].push_back(i);
+                syms[idx].push_back({line.at(i), i});
             }
             if (isdigit(line.at(i))) {
                 if (number.empty()) num_idx = i;
@@ -63,13 +78,23 @@ int main(int argc, char **argv) {
         if (!number.empty())
             nums[idx].push_back({num_idx, {begin(number), end(number)}});
 
-        sum += harvest_sum(nums[idx], syms[idx]);
-        sum += harvest_sum(nums[idx], syms[abs(idx - 1) % syms.size()]);
-        sum += harvest_sum(nums[abs(idx - 1) % nums.size()], syms[idx]);
+        find_adj_nums(nums[idx], syms[idx]);
+        find_adj_nums(nums[idx], syms[abs(idx - 1) % syms.size()]);
+        find_adj_nums(nums[abs(idx - 1) % nums.size()], syms[idx]);
+
+        for (const auto &sym : syms[abs(idx - 1) % nums.size()]) {
+            sum += accumulate(begin(sym.adj_nums), end(sym.adj_nums), 0);
+            if (sym.s == '*' && sym.adj_nums.size() > 1) {
+                pow += accumulate(begin(sym.adj_nums), end(sym.adj_nums), 1,
+                                  multiplies<int>());
+            }
+        }
+
         nums[abs(idx - 1) % nums.size()].clear();
         syms[abs(idx - 1) % syms.size()].clear();
         idx = (idx + 1) % syms.size();
     }
 
-    cout << sum << "\n";
+    cout << "Part1 " << sum << "\n";
+    cout << "Part2 " << pow << "\n";
 }
