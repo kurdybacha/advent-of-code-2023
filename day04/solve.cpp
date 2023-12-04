@@ -1,7 +1,7 @@
 #include <algorithm>
+#include <format>
 #include <fstream>
 #include <iostream>
-#include <iterator>
 #include <numeric>
 #include <ranges>
 #include <unordered_map>
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
             points += 1 << (my_winning.size() - 1);
         }
     }
-    cout << "Part 1: " << points << "\n";
-    cout << "Part 2: "
-         << ranges::fold_left(cards | views::values, 0, plus<int>()) << "\n";
+    cout << format("Part 1: {}\n", points);
+    cout << format("Part 2: {}\n",
+                   ranges::fold_left(cards | views::values, 0, plus<int>()));
 }
