@@ -33,6 +33,7 @@ struct Card {
         }
     }
 };
+
 bool comp(const Card &a, const Card &b, bool with_joker = false) {
     return a.strength(with_joker) < b.strength(with_joker);
 }
@@ -138,21 +139,19 @@ int main(int argc, char **argv) {
         hands.push_back({Hand{hand}, rank});
     }
 
-    sort(begin(hands), end(hands), [](const auto &p1, const auto &p2) {
-        return comp(p1.first, p2.first, false);
-    });
-
-    auto sum = [](const decltype(hands) &v) {
-        ulong s = 0;
-        for (const auto &[idx, p] : views::enumerate(v)) {
-            s += (idx + 1) * p.second;
-        }
-        return s;
+    auto sum = [](const auto &v) {
+        auto view = v | views::enumerate;
+        return ranges::fold_left(view, 0, [](const ulong v, const auto &p) {
+            const auto [idx, rank] = p;
+            return v + (idx + 1) * rank;
+        });
     };
-    cout << "Part 1: " << sum(hands) << "\n";
 
-    sort(begin(hands), end(hands), [](const auto &p1, const auto &p2) {
-        return comp(p1.first, p2.first, true);
-    });
-    cout << "Part 2: " << sum(hands) << "\n";
+    for (const auto &[idx, mode] :
+         array<bool, 2>{false, true} | views::enumerate) {
+        ranges::sort(hands, [mode](const auto &p1, const auto &p2) {
+            return comp(p1.first, p2.first, mode);
+        });
+        cout << format("Part {}: {}\n", idx + 1, sum(hands | views::values));
+    }
 }
