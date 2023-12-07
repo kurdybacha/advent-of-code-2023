@@ -62,32 +62,19 @@ struct Hand {
         HandType type = Unknown;
         switch (vec.size()) {
             case 5:
-                type = HighCard;
-                break;
+                return HighCard;
             case 4:
-                type = OnePair;
-                break;
-            case 3: {
-                if (vec[0] == 3) {
-                    type = ThreeKind;
-                } else if (vec[0] == 2) {
-                    type = TwoPair;
-                }
-            } break;
-            case 2: {
-                if (vec[0] == 4) {
-                    type = FourKind;
-                } else if (vec[0] == 3) {
-                    type = FullHouse;
-                }
-            } break;
+                return OnePair;
+            case 3:
+                return vec[0] == 3 ? ThreeKind : TwoPair;
+            case 2:
+                return vec[0] == 4 ? FourKind : FullHouse;
             case 1:
-                type = FiveKind;
-                break;
+                return FiveKind;
             default:
                 assert(false);
         }
-        assert(type != Unknown);
+        assert(false);
         return type;
     }
 
