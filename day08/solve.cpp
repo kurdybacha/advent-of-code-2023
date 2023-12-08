@@ -1,12 +1,7 @@
-#include <assert.h>
-#include <bits/ranges_cmp.h>
-
 #include <algorithm>
-#include <cstdint>
 #include <format>
 #include <fstream>
 #include <iostream>
-#include <map>
 #include <numeric>
 #include <ranges>
 #include <unordered_map>
@@ -53,8 +48,7 @@ int main(int argc, char** argv) {
         "Part 1: {}\n",
         counts[distance(begin(poss), find(begin(poss), end(poss), "AAA"))]);
 
-    auto l = ranges::fold_left(counts, 1,
-                               [](ulong a, ulong b) { return lcm(a, b); });
-
-    cout << format("Part 2: {}\n", l);
+    cout << format("Part 2: {}\n",
+                   ranges::fold_left(
+                       counts, 1, [](ulong a, ulong b) { return lcm(a, b); }));
 }
