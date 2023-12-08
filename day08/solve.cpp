@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
         string left = line.substr(7, 3);
         string right = line.substr(12, 3);
         nodes.emplace(node, make_pair(left, right));
-        if (node[2] == 'A') {
+        if (node.back() == 'A') {
             poss.push_back(node);
         }
     }
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     for (const auto& [idx, pos] : poss | views::enumerate) {
         ulong i = 0;
         string p = pos;
-        while (p[2] != 'Z') {
+        while (p.back() != 'Z') {
             char direction = directions[i % directions.size()];
             auto d = nodes[p];
             auto next = direction == 'L' ? d.first : d.second;
