@@ -17,14 +17,14 @@ vector<int> parse(const string_view sv) {
 }
 
 int predict(vector<int> numbers) {
-    auto stop = end(numbers);
-    while (!all_of(begin(numbers), stop, [](int v) { return v == 0; })) {
-        for (auto it = begin(numbers); it != stop - 1; ++it) {
+    auto limit = end(numbers);
+    while (any_of(begin(numbers), limit, [](int v) { return v != 0; })) {
+        for (auto it = begin(numbers); it != limit - 1; ++it) {
             *it = *(it + 1) - *it;
         }
-        --stop;
+        --limit;
     }
-    return ranges::fold_left(numbers, 0, plus<int>());
+    return ranges::fold_left(numbers, 0, plus<int>{});
 }
 
 int main(int argc, char** argv) {
@@ -32,8 +32,13 @@ int main(int argc, char** argv) {
     string line;
 
     int sum = 0;
+    int sum_reverse = 0;
     while (getline(file, line)) {
-        sum += predict(parse(line));
+        auto numbers = parse(line);
+        sum += predict(numbers);
+        reverse(begin(numbers), end(numbers));
+        sum_reverse += predict(numbers);
     }
     cout << format("Part 1: {}\n", sum);
+    cout << format("Part 2: {}\n", sum_reverse);
 }
