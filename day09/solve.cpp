@@ -19,9 +19,7 @@ vector<int> parse(const string_view sv) {
 int predict(vector<int> numbers) {
     auto limit = end(numbers);
     while (any_of(begin(numbers), limit, [](int v) { return v != 0; })) {
-        for (auto it = begin(numbers); it != limit - 1; ++it) {
-            *it = *(it + 1) - *it;
-        }
+        adjacent_difference(begin(numbers) + 1, limit, begin(numbers));
         --limit;
     }
     return ranges::fold_left(numbers, 0, plus<int>{});
