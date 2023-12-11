@@ -42,14 +42,14 @@ class Graph {
         return Pos{pos.row > 0 ? pos.row - 1 : pos.row, pos.col};
     }
     Pos pos_south(Pos pos) const {
-        return Pos{pos.row < nodes.back().size() - 1 ? pos.row + 1 : pos.row,
-                   pos.col};
+        return Pos{pos.row < nodes.size() - 1 ? pos.row + 1 : pos.row, pos.col};
     }
     Pos pos_west(Pos pos) const {
         return Pos{pos.row, pos.col > 0 ? pos.col - 1 : pos.col};
     }
     Pos pos_east(Pos pos) const {
-        return Pos{pos.row, pos.col < nodes.size() - 1 ? pos.col + 1 : pos.col};
+        return Pos{pos.row,
+                   pos.col < nodes.front().size() - 1 ? pos.col + 1 : pos.col};
     }
 
     const Node& node_at(Pos pos) const { return nodes[pos.row][pos.col]; }
@@ -82,7 +82,7 @@ class Graph {
         return pos;
     }
 
-    size_t walk_the_loop() const {
+    pair<size_t, size_t> walk_the_loop() const {
         vector<vector<bool>> visited(nodes.size(),
                                      vector<bool>(nodes.front().size(), false));
 
@@ -96,7 +96,27 @@ class Graph {
             if (new_pos == pos) break;
             pos = new_pos;
         }
-        return steps;
+
+        auto area = [&](const auto& visited) -> size_t {
+            size_t tiles = 0;
+            for (size_t row = 0; row < visited.size(); ++row) {
+                bool north = false;
+                bool south = false;
+                bool inside = false;
+                for (size_t col = 0; col < visited.front().size(); ++col) {
+                    if (visited[row][col]) {
+                        north ^= "SLJ|"sv.contains(node_at({row, col}));
+                        south ^= "S7F|"sv.contains(node_at({row, col}));
+                        inside = north || south;
+                    } else if (inside) {
+                        tiles += 1;
+                    }
+                }
+            }
+            return tiles;
+        };
+
+        return {steps, area(visited)};
     }
 
    private:
@@ -106,5 +126,7 @@ class Graph {
 
 int main(int argc, char** argv) {
     const Graph& g = Graph::from_file(argv[1]);
-    cout << format("Part 1: {}\n", g.walk_the_loop() / 2);
+    const auto& [steps, area] = g.walk_the_loop();
+    cout << format("Part 1: {}\n", steps / 2);
+    cout << format("Part 2: {}\n", area);
 }
