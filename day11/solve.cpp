@@ -61,7 +61,8 @@ class Graph {
         for (size_t col = 0; col < g.matrix.front().size(); ++col) {
             bool empty = true;
             for (size_t row = 0; row < g.matrix.size(); ++row) {
-                if (g.matrix[row][col] == Node{Node::Galaxy}) {
+                const auto& node = g.matrix[row][col];
+                if (node.type == Node::Galaxy) {
                     empty = false;
                     break;
                 }
@@ -75,24 +76,20 @@ class Graph {
 
     size_t shortest_paths(size_t expand_factor) {
         auto shortest_path = [&](Pos pos1, Pos pos2, size_t expand_factor) {
-            size_t empty_rows_between = 0;
-            size_t empty_cols_between = 0;
             size_t row1 = min(pos1.row, pos2.row);
             size_t row2 = max(pos1.row, pos2.row);
             size_t col1 = min(pos1.col, pos2.col);
             size_t col2 = max(pos1.col, pos2.col);
-            for (size_t empty_row : empty_rows) {
-                if (empty_row > row1 && empty_row < row2) {
-                    empty_rows_between += expand_factor - 1;
-                }
-            }
-            for (size_t empty_col : empty_cols) {
-                if (empty_col > col1 && empty_col < col2) {
-                    empty_cols_between += expand_factor - 1;
-                }
-            }
-            return (row2 - row1 + empty_rows_between) +
-                   (col2 - col1 + empty_cols_between);
+
+            auto const expand = [expand_factor](
+                                    size_t p1, size_t p2,
+                                    const vector<size_t>& numbers) -> size_t {
+                return distance(ranges::upper_bound(numbers, p1),
+                                ranges::lower_bound(numbers, p2)) *
+                       (expand_factor - 1);
+            };
+            return (row2 - row1 + expand(row1, row2, empty_rows)) +
+                   (col2 - col1 + expand(col1, col2, empty_cols));
         };
 
         size_t sum = 0;
@@ -109,7 +106,7 @@ class Graph {
     vector<vector<Node>> matrix;
     vector<Pos> galaxies;
     vector<size_t> empty_rows;
-    vector<int> empty_cols;
+    vector<size_t> empty_cols;
 };
 
 int main(int argc, char** argv) {
